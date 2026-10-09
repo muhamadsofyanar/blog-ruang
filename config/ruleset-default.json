@@ -1,0 +1,71 @@
+{
+    "version": 1,
+    "rules": [
+        {
+            "id": "keyword_in_first_100_words",
+            "label": "Kata kunci muncul di 100 kata pertama",
+            "weight": 10,
+            "threshold": true
+        },
+        {
+            "id": "single_h1",
+            "label": "Hanya ada satu H1",
+            "weight": 10,
+            "threshold": 1
+        },
+        {
+            "id": "has_h2_h3",
+            "label": "Terdapat subjudul H2 dan H3",
+            "weight": 8,
+            "threshold": true
+        },
+        {
+            "id": "internal_link_min",
+            "label": "Minimal satu tautan internal",
+            "weight": 8,
+            "threshold": 1
+        },
+        {
+            "id": "external_link_min",
+            "label": "Minimal satu tautan eksternal",
+            "weight": 6,
+            "threshold": 1
+        },
+        {
+            "id": "meta_title_length",
+            "label": "Panjang meta title 45 sampai 60 karakter",
+            "weight": 10,
+            "threshold": {
+                "min": 45,
+                "max": 60
+            }
+        },
+        {
+            "id": "meta_desc_length",
+            "label": "Panjang meta description 120 sampai 160 karakter",
+            "weight": 10,
+            "threshold": {
+                "min": 120,
+                "max": 160
+            }
+        },
+        {
+            "id": "images_have_alt",
+            "label": "Semua gambar memiliki atribut alt",
+            "weight": 8,
+            "threshold": true
+        },
+        {
+            "id": "word_count_min",
+            "label": "Jumlah kata minimal 800",
+            "weight": 12,
+            "threshold": 800
+        },
+        {
+            "id": "faq_present",
+            "label": "Terdapat bagian FAQ",
+            "weight": 8,
+            "threshold": true
+        }
+    ]
+}

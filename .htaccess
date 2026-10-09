@@ -1,0 +1,51 @@
+# Averion SEO Engine — satu universal fallback rule (pola CloudPanel/Nginx).
+# Semua request yang bukan file/direktori nyata dialihkan ke index.php
+# (front controller). CloudPanel/Nginx tidak membaca .htaccess — konfigurasi
+# setara diberikan di dokumentasi deploy.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(?:cache|helpers|migrations|config|docker|tests)(?:/|$) - [F,L]
+    RewriteRule ^uploads/.*\.(?:php[0-9]*|phtml|phar)(?:\.|$) - [F,L,NC]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Tolak akses langsung ke file sensitif.
+<FilesMatch "^(config\.php|config\.sample\.php|version\.php|db\.php|bootstrap\.php|helpers\.php|install\.lock)$">
+    Require all denied
+</FilesMatch>
+
+# Kompres aset teks agar transfer CSS/JS/JSON/SVG lebih kecil.
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+# Cache browser untuk aset statis. URL CSS memakai versi aplikasi; upload baru
+# memakai nama unik sehingga aman disimpan lama tanpa menampilkan file lama.
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType text/javascript "access plus 1 month"
+    ExpiresByType image/avif "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js|avif|webp|jpe?g|png|gif|svg|ico)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+    Header merge Vary "Accept-Encoding"
+</IfModule>
+
+<FilesMatch "(?i)^(\..*|Dockerfile|docker-compose\.ya?ml|.*\.(sql|zip|log|bak|md|sh|ini))$">
+    Require all denied
+</FilesMatch>
+Options -Indexes

@@ -1,0 +1,52 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    expose:
+      - "80"
+    environment:
+      APP_URL: ${APP_URL:?Set APP_URL to your HTTPS domain}
+      DB_HOST: database
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME:-averion_scribe}
+      DB_USER: ${DB_USER:-averion}
+      DB_PASS: ${DB_PASSWORD:?Set DB_PASSWORD}
+      INSTALLER_TOKEN: ${INSTALLER_TOKEN:?Set a random INSTALLER_TOKEN}
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - app_config:/var/lib/averion
+      - app_uploads:/var/www/html/uploads
+      - app_cache:/var/www/html/cache
+      - app_sessions:/var/lib/php/sessions
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1/healthz.php') === 'ok' ? 0 : 1);"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+  database:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-averion_scribe}
+      MARIADB_USER: ${DB_USER:-averion}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD}
+    volumes:
+      - database_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+volumes:
+  app_config:
+  app_uploads:
+  app_cache:
+  app_sessions:
+  database_data:

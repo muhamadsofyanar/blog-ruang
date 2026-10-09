@@ -1,0 +1,13 @@
+/config.php
+/.env
+/.env.*
+!/.env.example
+/installer/install.lock
+/.dev-mode
+/uploads/*
+!/uploads/.gitkeep
+/cache/*
+!/cache/.gitkeep
+/storage/
+*.log
+*.bak

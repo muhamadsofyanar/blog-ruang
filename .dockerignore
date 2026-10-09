@@ -1,0 +1,12 @@
+.git
+.env
+.env.*
+!.env.example
+config.php
+installer/install.lock
+.dev-mode
+uploads/*
+cache/*
+storage
+*.zip
+*.log

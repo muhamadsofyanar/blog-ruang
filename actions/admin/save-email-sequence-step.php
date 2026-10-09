@@ -1,0 +1,11 @@
+<?php
+require_once __DIR__ . '/../../bootstrap.php'; requireAdmin();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !validateCSRF($_POST['csrf_token'] ?? '')) { flash('error','Permintaan tidak valid.','error'); redirect('/admin/email-sequences'); }
+$pdo=getDB();$sequenceId=(int)($_POST['sequence_id']??0);$id=(int)($_POST['id']??0);$step=max(1,min(50,(int)($_POST['step_number']??1)));$delay=max(0,min(365,(int)($_POST['delay_days']??0)));$subject=trim(str_replace(["\r","\n"],'',(string)($_POST['subject']??'')));$body=(string)($_POST['body']??'');$format=($_POST['body_format']??'html')==='text'?'text':'html';$status=($_POST['status']??'active')==='inactive'?'inactive':'active';
+if($sequenceId<1||$subject===''||trim($body)===''){flash('error','Sequence, subject, dan isi email wajib diisi.','error');redirect('/admin/email-sequence-steps?id='.$sequenceId);}
+try{
+    $sequenceCheck=$pdo->prepare('SELECT id FROM email_sequences WHERE id=? LIMIT 1');$sequenceCheck->execute([$sequenceId]);if(!$sequenceCheck->fetchColumn())throw new RuntimeException('Sequence tidak ditemukan.');
+    if($id>0){$stepCheck=$pdo->prepare('SELECT id FROM email_sequence_steps WHERE id=? AND sequence_id=? LIMIT 1');$stepCheck->execute([$id,$sequenceId]);if(!$stepCheck->fetchColumn())throw new RuntimeException('Email sequence tidak ditemukan.');$pdo->prepare('UPDATE email_sequence_steps SET step_number=?,delay_days=?,subject=?,body=?,body_format=?,status=?,updated_at=NOW() WHERE id=? AND sequence_id=?')->execute([$step,$delay,mb_substr($subject,0,255),$body,$format,$status,$id,$sequenceId]);}
+    else$pdo->prepare('INSERT INTO email_sequence_steps (sequence_id,step_number,delay_days,subject,body,body_format,status) VALUES (?,?,?,?,?,?,?)')->execute([$sequenceId,$step,$delay,mb_substr($subject,0,255),$body,$format,$status]);
+    $pdo->prepare('UPDATE email_sequences SET updated_at=NOW() WHERE id=?')->execute([$sequenceId]);flash('success','Email sequence disimpan.','success');
+}catch(Throwable $e){error_log('save email sequence step: '.$e->getMessage());flash('error',$e instanceof RuntimeException?$e->getMessage():(str_contains($e->getMessage(),'Duplicate')?'Nomor step sudah dipakai.':'Email sequence belum dapat disimpan.'),'error');}redirect('/admin/email-sequence-steps?id='.$sequenceId);
